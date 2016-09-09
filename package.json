@@ -1,0 +1,21 @@
+{
+  "name": "seebigs-resolve",
+  "version": "1.0.0",
+  "description": "Resolve file paths to actual module contents",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seebigs/seebigs-resolve.git"
+  },
+  "author": "Chris Bigelow <seebigswork@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seebigs/seebigs-resolve/issues"
+  },
+  "dependencies": {
+    "require-resolve": "0.0.2"
+  }
+}
