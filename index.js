@@ -78,6 +78,8 @@ function loadModule (str, absPaths, filepath) {
 
 
 function resolve (str, fromFile, paths) {
+    paths = paths || [];
+
     var dir = path.dirname(fromFile);
     var m = {};
 
