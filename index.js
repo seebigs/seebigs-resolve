@@ -107,7 +107,7 @@ function resolve (str, fromFile, paths) {
         }
     });
 
-    return loadModule(str, Object.keys(absPaths), fromFile);
+    return loadModule(str, Object.keys(absPaths), path.resolve(fromFile));
 }
 
 module.exports = resolve;
