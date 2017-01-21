@@ -39,7 +39,7 @@ function loadLocal (str) {
 
     return {
         contents: contents,
-        path: p
+        path: path.resolve(p)
     };
 }
 
