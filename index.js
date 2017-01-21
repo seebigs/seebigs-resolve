@@ -23,16 +23,24 @@ function loadLocal (str) {
 
     } catch (noFile) {
         try {
-            contents = fs.readFileSync(str + '.js', 'utf8');
-            p = str + '.js';
+            var packageJSON = JSON.parse(fs.readFileSync(str + '/package.json', 'utf8'));
+            var pathToMain = path.resolve(str, packageJSON.main);
+            contents = fs.readFileSync(pathToMain, 'utf8');
+            p = pathToMain;
 
-        } catch (noJS) {
+        } catch (noPackageJson) {
             try {
-                contents = fs.readFileSync(str + '/index.js', 'utf8');
-                p = str + '/index.js';
+                contents = fs.readFileSync(str + '.js', 'utf8');
+                p = str + '.js';
 
-            } catch (noDir) {
-                handleOtherErrors(noDir, str);
+            } catch (noJS) {
+                try {
+                    contents = fs.readFileSync(str + '/index.js', 'utf8');
+                    p = str + '/index.js';
+
+                } catch (noIndex) {
+                    handleOtherErrors(noIndex, str);
+                }
             }
         }
     }
