@@ -51,61 +51,28 @@ function loadLocal (str) {
     };
 }
 
-function loadModule (str, absPaths, filepath) {
+function loadFromNodeModules (str, fromFile) {
     var i, len;
-    var mod = {};
-
-    // check provided paths
-    for (i = 0, len = absPaths.length; i < len; i++) {
-        mod = loadLocal(path.resolve(absPaths[i], str));
-        if (mod.contents) {
-            break;
-        }
-    }
 
     // check node_modules
-    if (!mod.contents) {
-        mod = requireResolve(str, filepath);
-
-        try {
-            mod = {
-                contents: fs.readFileSync(mod.src, 'utf8'),
-                path: mod.src
-            };
-        } catch (err) {
-            // do nothing
-        }
-
-        if (!mod) {
-            mod = {};
-        }
+    var mod = requireResolve(str, fromFile) || {};
+    try {
+        mod = {
+            contents: fs.readFileSync(mod.src, 'utf8'),
+            path: mod.src
+        };
+    } catch (err) {
+        // do nothing
     }
 
-    return mod;
+    return mod || {};
 }
 
-
-function resolve (str, fromFile, paths) {
-    fromFile = fromFile || '.';
+function loadFromPaths (str, filepath, paths, dir) {
     paths = paths || [];
 
-    var dir = path.dirname(fromFile);
-    var m = {};
-
-    // resolve local
-    if (/^\./.test(str)) {
-        m = loadLocal(path.join(dir, str));
-
-    } else if (path.isAbsolute(str)) {
-        m = loadLocal(str);
-    }
-
-    if (m.contents) {
-        return m;
-    }
-
+    var mod;
     var absPaths = {};
-
     absPaths[dir] = 1;
 
     paths.forEach(function (root) {
@@ -116,7 +83,55 @@ function resolve (str, fromFile, paths) {
         }
     });
 
-    return loadModule(str, Object.keys(absPaths), path.resolve(fromFile));
+    absPaths = Object.keys(absPaths);
+
+    // check provided paths
+    for (var i = 0, len = absPaths.length; i < len; i++) {
+        mod = loadLocal(path.resolve(absPaths[i], str));
+        if (mod.contents) {
+            break;
+        }
+    }
+
+    return mod;
+}
+
+
+function resolve (str, fromFile, paths) {
+    fromFile = fromFile || '.';
+    var dir = path.dirname(fromFile);
+    var m = {};
+    fromFile = path.resolve(fromFile);
+
+
+    /* resolve local */
+
+    if (/^\./.test(str)) {
+        m = loadLocal(path.join(dir, str));
+    } else if (path.isAbsolute(str)) {
+        m = loadLocal(str);
+    }
+
+    if (m.contents) {
+        return m;
+    }
+
+
+    /* resolve node_modules */
+
+    m = loadFromNodeModules(str, fromFile);
+
+    if (m.contents) {
+        return m;
+    }
+
+
+    /* resolve from paths */
+
+    m = loadFromPaths(str, path.resolve(fromFile), paths, dir);
+
+
+    return m || {};
 }
 
 module.exports = resolve;
