@@ -16,6 +16,7 @@
     "url": "https://github.com/seebigs/seebigs-resolve/issues"
   },
   "dependencies": {
+    "browser-resolve": "^1.11.2",
     "require-resolve": "0.0.2"
   },
   "devDependencies": {

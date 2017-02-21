@@ -36,3 +36,14 @@ var paths = [
 
 resolve('module.js', fromFile, paths);
 ```
+
+## Browser Field
+
+Force resolve to use the browser field in package.json
+
+```js
+var resolve = require('seebigs-resolve');
+var fromFile = __filename;
+
+resolve.browser('module.js', fromFile);
+```

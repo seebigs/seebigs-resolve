@@ -3,6 +3,7 @@
  * Follows Node spec: https://nodejs.org/api/modules.html
  */
 
+var browserResolve = require('browser-resolve').sync;
 var fs = require('fs');
 var path = require('path');
 var requireResolve = require('require-resolve');
@@ -14,7 +15,18 @@ function handleOtherErrors (err, str) {
     }
 }
 
-function loadLocal (str) {
+function mainForBrowser (packageJSON, str) {
+    var b = packageJSON.browser;
+    if (typeof b === 'string') {
+        return b;
+    } else if (typeof b === 'object') {
+        var bSpecific = b[str];
+        return bSpecific ? bSpecific : (bSpecific === false ? {} : packageJSON.main);
+    }
+    return packageJSON.main;
+}
+
+function loadLocal (str, _isBrowser) {
     var contents;
     var p = str;
 
@@ -24,7 +36,7 @@ function loadLocal (str) {
     } catch (noFile) {
         try {
             var packageJSON = JSON.parse(fs.readFileSync(str + '/package.json', 'utf8'));
-            var pathToMain = path.resolve(str, packageJSON.main);
+            var pathToMain = path.resolve(str, _isBrowser ? mainForBrowser(packageJSON, str) : packageJSON.main);
             contents = fs.readFileSync(pathToMain, 'utf8');
             p = pathToMain;
 
@@ -51,15 +63,25 @@ function loadLocal (str) {
     };
 }
 
-function loadFromNodeModules (str, fromFile) {
-    var i, len;
+function loadFromNodeModules (str, fromFile, _isBrowser) {
+    var i, len, modPath;
+    var mod = {};
 
     // check node_modules
-    var mod = requireResolve(str, fromFile) || {};
+    try {
+        if (_isBrowser) {
+            modPath = browserResolve(str, { filename: fromFile });
+        } else {
+            modPath = requireResolve(str, fromFile).src;
+        }
+    } catch (err) {
+        // do nothing
+    }
+
     try {
         mod = {
-            contents: fs.readFileSync(mod.src, 'utf8'),
-            path: mod.src
+            contents: fs.readFileSync(modPath, 'utf8'),
+            path: modPath
         };
     } catch (err) {
         // do nothing
@@ -68,7 +90,7 @@ function loadFromNodeModules (str, fromFile) {
     return mod || {};
 }
 
-function loadFromPaths (str, filepath, paths, dir) {
+function loadFromPaths (str, filepath, paths, dir, _isBrowser) {
     paths = paths || [];
 
     var mod;
@@ -87,7 +109,7 @@ function loadFromPaths (str, filepath, paths, dir) {
 
     // check provided paths
     for (var i = 0, len = absPaths.length; i < len; i++) {
-        mod = loadLocal(path.resolve(absPaths[i], str));
+        mod = loadLocal(path.resolve(absPaths[i], str), _isBrowser);
         if (mod.contents) {
             break;
         }
@@ -97,7 +119,7 @@ function loadFromPaths (str, filepath, paths, dir) {
 }
 
 
-function resolve (str, fromFile, paths) {
+function resolve (str, fromFile, paths, _isBrowser) {
     fromFile = fromFile || '.';
     var dir = path.dirname(fromFile);
     var m = {};
@@ -107,9 +129,9 @@ function resolve (str, fromFile, paths) {
     /* resolve local */
 
     if (/^\./.test(str)) {
-        m = loadLocal(path.join(dir, str));
+        m = loadLocal(path.join(dir, str), _isBrowser);
     } else if (path.isAbsolute(str)) {
-        m = loadLocal(str);
+        m = loadLocal(str, _isBrowser);
     }
 
     if (m.contents) {
@@ -119,7 +141,7 @@ function resolve (str, fromFile, paths) {
 
     /* resolve node_modules */
 
-    m = loadFromNodeModules(str, fromFile);
+    m = loadFromNodeModules(str, fromFile, _isBrowser);
 
     if (m.contents) {
         return m;
@@ -128,10 +150,14 @@ function resolve (str, fromFile, paths) {
 
     /* resolve from paths */
 
-    m = loadFromPaths(str, path.resolve(fromFile), paths, dir);
+    m = loadFromPaths(str, path.resolve(fromFile), paths, dir, _isBrowser);
 
 
     return m || {};
 }
+
+resolve.browser = function (str, fromFile, paths) {
+    return resolve.call(this, str, fromFile, paths, true);
+};
 
 module.exports = resolve;

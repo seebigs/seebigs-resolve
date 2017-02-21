@@ -1,0 +1,7 @@
+{
+  "name": "dummy-local",
+  "version": "0.0.1",
+  "description": "This is only used for an internal test",
+  "main": "index.js",
+  "browser": "browser.js"
+}
