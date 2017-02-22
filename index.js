@@ -70,6 +70,9 @@ function loadFromNodeModules (str, fromFile, _isBrowser) {
     // check node_modules
     try {
         if (_isBrowser) {
+            if (fs.statSync(fromFile).isDirectory()) {
+                fromFile += '/file.file';
+            }
             modPath = browserResolve(str, { filename: fromFile });
         } else {
             modPath = requireResolve(str, fromFile).src;
@@ -153,7 +156,7 @@ function resolve (str, fromFile, paths, _isBrowser) {
     m = loadFromPaths(str, path.resolve(fromFile), paths, dir, _isBrowser);
 
 
-    return m || {};
+    return m.contents ? m : {};
 }
 
 resolve.browser = function (str, fromFile, paths) {
