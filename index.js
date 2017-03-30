@@ -129,19 +129,6 @@ function resolve (str, fromFile, paths, _isBrowser) {
     fromFile = path.resolve(fromFile);
 
 
-    /* resolve local */
-
-    if (/^\./.test(str)) {
-        m = loadLocal(path.join(dir, str), _isBrowser);
-    } else if (path.isAbsolute(str)) {
-        m = loadLocal(str, _isBrowser);
-    }
-
-    if (m.contents) {
-        return m;
-    }
-
-
     /* resolve node_modules */
 
     m = loadFromNodeModules(str, fromFile, _isBrowser);
