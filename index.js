@@ -57,10 +57,14 @@ function loadLocal (str, _isBrowser) {
         }
     }
 
-    return {
-        contents: contents,
-        path: path.resolve(p)
-    };
+    if (typeof contents !== 'undefined') {
+        return {
+            contents: contents,
+            path: path.resolve(p),
+        };
+    }
+
+    return {};
 }
 
 function loadFromNodeModules (str, fromFile, _isBrowser) {
@@ -113,7 +117,7 @@ function loadFromPaths (str, filepath, paths, dir, _isBrowser) {
     // check provided paths
     for (var i = 0, len = absPaths.length; i < len; i++) {
         mod = loadLocal(path.resolve(absPaths[i], str), _isBrowser);
-        if (mod.contents) {
+        if (mod.path) {
             break;
         }
     }
@@ -125,25 +129,20 @@ function loadFromPaths (str, filepath, paths, dir, _isBrowser) {
 function resolve (str, fromFile, paths, _isBrowser) {
     fromFile = fromFile || '.';
     var dir = path.dirname(fromFile);
-    var m = {};
+    var mod = {};
     fromFile = path.resolve(fromFile);
 
-
     /* resolve node_modules */
-
-    m = loadFromNodeModules(str, fromFile, _isBrowser);
-
-    if (m.contents) {
-        return m;
+    mod = loadFromNodeModules(str, fromFile, _isBrowser);
+    if (mod.path) {
+        return mod;
     }
 
-
     /* resolve from paths */
+    mod = loadFromPaths(str, path.resolve(fromFile), paths, dir, _isBrowser);
 
-    m = loadFromPaths(str, path.resolve(fromFile), paths, dir, _isBrowser);
 
-
-    return m.contents ? m : {};
+    return mod.path ? mod : {};
 }
 
 resolve.browser = function (str, fromFile, paths) {
