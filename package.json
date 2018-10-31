@@ -4,7 +4,7 @@
   "description": "Resolve file paths to actual module contents",
   "main": "index.js",
   "scripts": {
-    "test": "node test/automated"
+    "test": "node test"
   },
   "repository": {
     "type": "git",
