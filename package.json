@@ -1,6 +1,6 @@
 {
   "name": "seebigs-resolve",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Resolve file paths to actual module contents",
   "main": "index.js",
   "scripts": {
